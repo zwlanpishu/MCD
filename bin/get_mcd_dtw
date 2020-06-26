@@ -12,6 +12,7 @@ import sys
 import argparse
 import math
 import numpy as np
+import librosa
 
 from htk_io.base import DirReader
 import htk_io.vecseq as vsio
@@ -19,6 +20,8 @@ import htk_io.vecseq as vsio
 from mcd import util
 from mcd import dtw
 import mcd.metrics_fast as mt
+from sklearn import preprocessing
+
 
 def main(rawArgs):
     parser = argparse.ArgumentParser(
@@ -61,17 +64,28 @@ def main(rawArgs):
     args = parser.parse_args(rawArgs[1:])
 
     costFn = mt.logSpecDbDist
-
-    vecSeqIo = vsio.VecSeqIo(args.paramOrder)
-    getNatVecSeq = DirReader(vecSeqIo, args.natDir, args.ext)
-    getSynthVecSeq = DirReader(vecSeqIo, args.synthDir, args.ext)
-
     minCostTot = 0.0
     framesTot = 0
+    curr_path = "/home/server/workspace/TTS_eval/mcd"
+    wavs_path = os.path.join(curr_path, "test_data")
     for uttId in args.uttIds:
         print 'processing', uttId
-        nat = getNatVecSeq(uttId)
-        synth = getSynthVecSeq(uttId)
+
+        # new add codes for mfcc extratction
+        # get ref and syn audio
+        ref_path = os.path.join(wavs_path, "ref-examples", uttId)
+        syn_path = os.path.join(wavs_path, "synth-examples", uttId)
+
+        # compute mfcc of corresponding audios
+        ref_audio, ref_sr = librosa.load(ref_path, sr=None)
+        syn_audio, syn_sr = librosa.load(syn_path, sr=None)
+        nat = librosa.feature.mfcc(y=ref_audio, sr=ref_sr)
+        synth = librosa.feature.mfcc(y=syn_audio, sr=syn_sr)
+        nat = nat.astype('float64').T
+        synth = synth.astype('float64').T
+        nat = preprocessing.scale(nat, axis=1)
+        synth = preprocessing.scale(synth, axis=1)
+
         # ignore 0th cepstral component
         nat = nat[:, 1:]
         synth = synth[:, 1:]

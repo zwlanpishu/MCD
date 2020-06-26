@@ -1,0 +1,6 @@
+在使用该程序计算音频的mcd指标时，将对应的真实语音音频文件放入test_data中的ref-examples文件夹中，然后将对应的生成语音音频文件放入test_data中的synth-examples文件夹中。将两类音频共同的文件名写入corpus.lst文件中。然后在mcd目录下运行以下命令：
+cat test_data/corpus.lst | xargs bin/get_mcd_dtw test_data/ref-examples test_data/synth-examples
+
+其中cat用于显示文件内容，|用于将cat显示的输出重新输入后续命令，xargs用于将|的输出分割为若干个参数并将其提供给后续命令作为命令行参数。使用xargs的原因是大多数命令并不支持直接获取从管道|输出的指令，因此需要使用xargs作为中间中转命令.
+
+详细说明参见readme.
