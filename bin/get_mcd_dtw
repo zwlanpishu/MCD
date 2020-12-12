@@ -68,6 +68,7 @@ def main(rawArgs):
     framesTot = 0
     curr_path = "/home/server/workspace/TTS_eval/mcd"
     wavs_path = os.path.join(curr_path, "test_data")
+    mcd_list = []
     for uttId in args.uttIds:
         print 'processing', uttId
 
@@ -95,8 +96,17 @@ def main(rawArgs):
 
         minCostTot += minCost
         framesTot += frames
+	
+	print 'current mcd', minCost / frames
+
+        mcd_list.append(minCost / frames)
 
     print 'overall MCD = %f (%d frames)' % (minCostTot / framesTot, framesTot)
+
+    average_mcd = sum(mcd_list) / len(mcd_list)
+    stderr_mcd = (sum((mcd_list - average_mcd) ** 2) / len(mcd_list)) ** 0.5
+    inter_mcd = 1.960 * stderr_mcd / len(mcd_list) ** 0.5
+    print 'average MCD = %f +_ %f, stderr: %f' % (average_mcd, inter_mcd, stderr_mcd)
 
 if __name__ == '__main__':
     main(sys.argv)
