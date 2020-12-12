@@ -10,14 +10,9 @@
 import os
 import sys
 import argparse
-import math
-import numpy as np
 import librosa
 
-from htk_io.base import DirReader
-import htk_io.vecseq as vsio
 
-from mcd import util
 from mcd import dtw
 import mcd.metrics_fast as mt
 from sklearn import preprocessing
@@ -26,40 +21,49 @@ from sklearn import preprocessing
 def main(rawArgs):
     parser = argparse.ArgumentParser(
         description=(
-            'Computes the MCD DTW metric for two sequences of mel cepstra.'
-            ' Mel cepstral distortion (MCD) is a measure of the difference'
-            ' between two sequences of mel cepstra.'
-            ' This utility computes the MCD between two sequences allowing for'
-            ' possible differences in timing.'
-            ' Specifically it uses dynamic time warping (DTW) to compute the'
+            "Computes the MCD DTW metric for two sequences of mel cepstra."
+            " Mel cepstral distortion (MCD) is a measure of the difference"
+            " between two sequences of mel cepstra."
+            " This utility computes the MCD between two sequences allowing for"
+            " possible differences in timing."
+            " Specifically it uses dynamic time warping (DTW) to compute the"
             ' minimum MCD that can be obtained by "aligning" the two sequences'
-            ' subject to certain constraints on the form of the alignment.'
+            " subject to certain constraints on the form of the alignment."
         ),
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        '--ext', dest='ext', default='mgc', metavar='EXT',
+        "--ext",
+        dest="ext",
+        default="mgc",
+        metavar="EXT",
         help=(
-            'file extension added to uttId to get file containing speech'
-            ' parameters'
-        )
+            "file extension added to uttId to get file containing speech" " parameters"
+        ),
     )
     parser.add_argument(
-        '--param_order', dest='paramOrder', default=40, type=int,
-        metavar='ORDER',
-        help='parameter order of the cepstral files'
+        "--param_order",
+        dest="paramOrder",
+        default=40,
+        type=int,
+        metavar="ORDER",
+        help="parameter order of the cepstral files",
     )
     parser.add_argument(
-        dest='natDir', metavar='NATDIR',
-        help='directory containing natural speech parameters'
+        dest="natDir",
+        metavar="NATDIR",
+        help="directory containing natural speech parameters",
     )
     parser.add_argument(
-        dest='synthDir', metavar='SYNTHDIR',
-        help='directory containing synthetic speech parameters'
+        dest="synthDir",
+        metavar="SYNTHDIR",
+        help="directory containing synthetic speech parameters",
     )
     parser.add_argument(
-        dest='uttIds', metavar='UTTID', nargs='+',
-        help='utterance ids (ext will be appended to these)'
+        dest="uttIds",
+        metavar="UTTID",
+        nargs="+",
+        help="utterance ids (ext will be appended to these)",
     )
     args = parser.parse_args(rawArgs[1:])
 
@@ -70,7 +74,7 @@ def main(rawArgs):
     wavs_path = os.path.join(curr_path, "test_data")
     mcd_list = []
     for uttId in args.uttIds:
-        print 'processing', uttId
+        print("processing", uttId)
 
         # new add codes for mfcc extratction
         # get ref and syn audio
@@ -82,8 +86,8 @@ def main(rawArgs):
         syn_audio, syn_sr = librosa.load(syn_path, sr=None)
         nat = librosa.feature.mfcc(y=ref_audio, sr=ref_sr)
         synth = librosa.feature.mfcc(y=syn_audio, sr=syn_sr)
-        nat = nat.astype('float64').T
-        synth = synth.astype('float64').T
+        nat = nat.astype("float64").T
+        synth = synth.astype("float64").T
         nat = preprocessing.scale(nat, axis=1)
         synth = preprocessing.scale(synth, axis=1)
 
@@ -96,17 +100,17 @@ def main(rawArgs):
 
         minCostTot += minCost
         framesTot += frames
-	
-	print 'current mcd', minCost / frames
+        print("current mcd", minCost / frames)
 
         mcd_list.append(minCost / frames)
 
-    print 'overall MCD = %f (%d frames)' % (minCostTot / framesTot, framesTot)
+    print("overall MCD = %f (%d frames)" % (minCostTot / framesTot, framesTot))
 
     average_mcd = sum(mcd_list) / len(mcd_list)
     stderr_mcd = (sum((mcd_list - average_mcd) ** 2) / len(mcd_list)) ** 0.5
     inter_mcd = 1.960 * stderr_mcd / len(mcd_list) ** 0.5
-    print 'average MCD = %f +_ %f, stderr: %f' % (average_mcd, inter_mcd, stderr_mcd)
+    print("average MCD = %f +_ %f, stderr: %f" % (average_mcd, inter_mcd, stderr_mcd))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main(sys.argv)
