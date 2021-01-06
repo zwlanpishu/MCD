@@ -70,7 +70,7 @@ def main(rawArgs):
     costFn = mt.logSpecDbDist
     minCostTot = 0.0
     framesTot = 0
-    curr_path = "/home/server/workspace/TTS_eval/mcd"
+    curr_path = "/home/server/workspace/TTS_eval/MCD"
     wavs_path = os.path.join(curr_path, "test_data")
     mcd_list = []
     for uttId in args.uttIds:
